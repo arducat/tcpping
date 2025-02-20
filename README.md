@@ -1,20 +1,17 @@
-# TcpPing v0.1.2
+# TcpPing v0.1.2-C
 
 Простая утилита для отправления запросов на TCP сервер.
+
+### Программа переписывается на C++! Реализация может быть не полной, по сравнению с версией Rust.
 
 ## Компилирование и запуск приложения
 
 
 Сначала клонируем репозиторий:
-`git clone https://gitverse.ru/fteam/tcpping.git`
+`git clone https://github.com/arducat/tcpping.git`
 
-
-Если вы хотите скомпилировать и сразу запустить:
-`cargo run --release --bin tcpping`
-
-
-Если вы хотите просто скомпилировать:
-`cargo build --release --bin tcpping`
+Если вы хотите скомпилировать:
+`make`
 
 Скомпилированная версия соберется в tcpping/target/release.
 
