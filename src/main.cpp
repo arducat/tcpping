@@ -1,16 +1,23 @@
 #include <iostream>
 #include <string>
 #include <cstring>
-#include <sys/types.h>
-#include <sys/socket.h>
+#include <vector>
 #include <QtNetwork/QTcpSocket>
+#include <QtCore/QVector>
+#include <QtCore/QString>
 #include "include/rang.hpp"
 using std::string;
+using std::vector;
 using namespace rang; /* брр так лучше конечно не делать, но ладно */
 
 void uerr(string error, char type);
 int quick(int argc, char** argv);
 void shell();
+
+/* Стырено со Stack Overflow, из-за "отличного" Switch/Case в C++. Ссылка: https://stackoverflow.com/questions/2111667/compile-time-string-hashing */
+constexpr unsigned int str2int(const char* str, int h = 0) {
+    return !str[h] ? 5381 : (str2int(str, h+1) * 33) ^ str[h];
+}
 
 int main(int argc, char** argv) {
 	if (argc <= 1) {
@@ -72,10 +79,7 @@ int quick(int argc, char** argv) {
         if(!t.waitForConnected(3000)) {
             std::cout << "oops";
         }
-        QDataStream socketStream(&t);
-        socketStream.setVersion(QDataStream::Qt_5_15);
-        
-        socketStream << d;
+        t.write(d.toUtf8());
         t.flush();
         
 	uerr("", 's');
@@ -83,5 +87,69 @@ int quick(int argc, char** argv) {
 }
 
 void shell() {
+        /* Ну всякие оптимизации ввода-вывода, почему нет? */
+        std::ios::sync_with_stdio(false);
+        std::cin.tie(nullptr);
+        /* Готовимся к работе */
+        QTextStream qtin(stdin);
         
+        std::cout << style::bold << "Консоль TcpPing" << style::reset << ": " << style::bold << fg::gray << "v0.1.2-C" << style::reset << "\n";
+        std::cout.flush();
+        
+        QString addr = "127.0.0.1";
+        int port = 25565; // ага, тот самый порт из майнкрафта
+        QTcpSocket t;
+        while(true) {
+                std::cout << "[tcpping] > ";
+                std::cout.flush();
+                QString str = qtin.readLine();
+                QVector<QString> v = str.split(" ");
+                
+                
+                
+                switch (str2int(v[0].toStdString().c_str())) {
+                        case str2int("exit"):
+                                exit(0);
+                                break;
+                        case str2int("connect"):
+                                //try {
+                                {
+                                QString b[2] = {v[1].split(":")[0], v[1].split(":")[1]};
+                                int c = b[1].toInt();
+                                t.connectToHost(b[0], c);
+                                if(!t.waitForConnected(3000)) {
+                                         uerr("Не удалось подключится.", 'e');
+                                } else {
+                                        addr = b[0];
+                                        port = c;
+                                        uerr("", 's');
+                                }
+                                        
+                                //} catch (...) {
+                                //        uerr("", 's');
+                                //}
+                                }
+                                break;
+                        case str2int("send"):
+                                {
+                                QString message = str.section(' ', 1);
+                                QByteArray data = message.toUtf8();
+                                
+                                //socketStream << data;
+                                t.write(data);
+                                t.flush();
+                                uerr("", 's');
+                                }
+                                break;
+                        case str2int("help"):
+                                //cwritefln("<b>Команды:\n  connect [адрес:порт]</b> - Подключает к UDP серверу. Если адрес сервера не указан, Вас его спросят. <b><red>ИСПОЛЬЗОВАТЬ ДО \"send\"!</red>\n  send [сообщение]</b> - Отправляет сообщение на подключенный UDP сервер. <b><red>ИСПОЛЬЗОВАТЬ ПОСЛЕ \"connect\"!</red>\n  ver</b> - Выводит версию Консоли UdpPing.\n  <b>exit</b> - Выходит из Консоли UdpPing.");
+                                break;
+                        case str2int("ver"):
+                                //cwritefln("<b>Консоль UdpPing</b>:<b><grey> v0.1.2-D</grey></b>");
+                                break;
+                        
+                        default:
+                                uerr("Неизвестная команда: \"" + v[0].toStdString() + "\"", 'e');
+                }
+        }
 }
