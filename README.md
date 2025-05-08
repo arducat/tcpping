@@ -1,4 +1,4 @@
-# TcpPing v0.1.2-C
+# TcpPing v0.1.3
 
 Простая утилита для отправления запросов на TCP сервер.
 
@@ -48,5 +48,3 @@
 
 ## Благодарности
 1. Спасибо Grisshink'у
-2. Используется библиотека [rang](https://github.com/agauniyal/rang)
-3. Используетя функция str2int, которую я стырил [отсюда](https://stackoverflow.com/questions/2111667/compile-time-string-hashing)
