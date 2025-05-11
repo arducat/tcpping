@@ -35,6 +35,15 @@ void uerr(string error, char type) {
 	}
 }
 
+void tcpsend(string addr_s, int port, string msg) {
+	auto tcps = new TcpSocket();
+        auto addr = new InternetAddress(std.socket.InternetAddress.parse(addr_s), to!ushort(port));
+        tcps.connect(addr);
+        tcps.send(msg);
+        uerr("", 's');
+	tcps.close();
+}
+
 int quick(string[] args) {
 	cwritefln("<b>Quick TcpPing</b>:<b><grey> v0.1.3</grey></b>");
 	
@@ -56,21 +65,16 @@ int quick(string[] args) {
 	}
 	
 	string[] tmp = args[3].split(":");
-	auto tcps = new TcpSocket();
-        auto addr = new InternetAddress(std.socket.InternetAddress.parse(tmp[0]), to!ushort(tmp[1]));
-	tcps.connect(addr);
-        tcps.send(args[5]);
-        uerr("", 's');
+	tcpsend(tmp[0], to!int(tmp[1]), args[5]);
+	
 	return(0);
 }
 
 void shell() {
 	cwritefln("<b>Консоль TcpPing</b>:<b><grey> v0.1.3</grey></b>");
-	auto tcps = new TcpSocket();
-        auto addr = new InternetAddress("localhost", 25565);
-        //tcps.connect(addr);
         bool gogo = true;
-
+	string addr_s = "127.0.0.1";
+	int port = 5555;
         while (gogo) {
         	write("[tcpping] > ");
 		stdout.flush();
@@ -83,9 +87,9 @@ void shell() {
                                 if (input.length == 2) {
                                 	auto tmp = input[1].findSplit(":");
                                 	if (tmp[2] != "") {
-                                		addr = new InternetAddress(std.socket.InternetAddress.parse(tmp[0].strip()), to!ushort(tmp[2].strip()));
-                                		tcps.connect(addr);
-                                		uerr("", 's');
+                                		addr_s = tmp[0];
+						port = to!int(tmp[2]);
+						uerr("", 's');
 					} else {
 						uerr("Неверное использование.", 'e');
 						uerr("Адрес должен быть в формате айпи:порт!", 'i');
@@ -95,9 +99,9 @@ void shell() {
 					stdout.flush();
                                 	auto tmp = (stdin.readln().strip()).findSplit(":");
                                 	if (tmp[2] != "") {
-                                		addr = new InternetAddress(std.socket.InternetAddress.parse(tmp[0].strip()), to!ushort(tmp[2].strip()));
-                                		tcps.connect(addr);
-                                		uerr("", 's');
+                                		addr_s = tmp[0];
+                                                port = to!int(tmp[2]);
+                                                uerr("", 's');
                                 	} else {
                                 		uerr("Неверное использование.", 'e');
 						uerr("Адрес должен быть в формате айпи:порт!", 'i');
@@ -106,14 +110,12 @@ void shell() {
                                 break;
                         case "send":
                                 if (input.length == 2) {
-                                	tcps.send(input[1]);
-                                	uerr("", 's');
+                                	tcpsend(addr_s, port, input[1]);
                                 } else {
                                 	write("Сообщение: ");
 					stdout.flush();
                                 	string tmp = stdin.readln().strip();
-                                	tcps.send(tmp);
-                                	uerr("", 's');
+                                	tcpsend(addr_s, port, tmp);
                                 }
                                 break;
                         case "help":
